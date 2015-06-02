@@ -54,7 +54,7 @@ object PLDIAssignments extends App {
         // compute duration in mins
         val duration = (end_d.getTime - start_d.getTime)/1000/60
 
-        Some((arow("event"),start_conv,end_conv,duration))
+        Some((arow("event"),start_conv,end_conv,duration,arow("total_duration")))
       } else {
         None
       }
@@ -69,19 +69,27 @@ object PLDIAssignments extends App {
 
   user_assignments.foreach { case (vol_id, assns) =>
 
-    val total_duration = assns.foldLeft(0L){ case (acc,(_,_,_,duration)) => acc + duration}
+    val total_duration = assns.foldLeft(0L){ case (acc,(_,_,_,_,admin_duration)) => acc + admin_duration.toInt}
 
     println(user_db(vol_id)('first) +
             " " + user_db(vol_id)('last) +
             " <" + user_db(vol_id)('email) + ">" +
             " (" + total_duration + " total minutes)"
     )
-    assns.foreach { case(event, start, end, duration) =>
-      println("\t" + start + " UNTIL " + end + " (" + duration + " minutes)" + "\t" + event)
+    assns.foreach { case(event, start, end, duration, admin_duration) =>
+      println("\t" + start + " UNTIL " + end + " (" + admin_duration + " minutes)" + "\t" + event)
     }
 
     println()
   }
+
+//  assignments.sortBy{ arow => arow("start") }.foreach { arow =>
+//    val event = arow("event")
+//    val start_d = date_conv(df.parse(arow("start")))
+//    val end_d = date_conv(df.parse(arow("end")))
+//    val duration = (end_d.getTime - start_d.getTime)/1000/60
+//    println(List(event,arow("start"),arow("end"),duration).mkString(","))
+//  }
 
   def date_conv(date: java.util.Date) : java.util.Date = {
     val start_dj = new LocalDateTime(date)
