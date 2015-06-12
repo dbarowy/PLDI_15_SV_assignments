@@ -7,12 +7,13 @@ import org.joda.time.{DateTimeZone, LocalDateTime}
 object PLDIAssignments extends App {
   if (args.size == 0) {
     println("Usage:")
-    println("\tsbt \"run <users.csv> <assignments.csv>\"")
+    println("\tsbt \"run <users.csv> <assignments.csv> <print times? true/false>\"")
     sys.exit(1)
   }
 
   val csv_users = args(0)
   val csv_assignments = args(1)
+  val with_times = if (args.size == 2) { false } else { args(2).toBoolean }
 
   val reader_users = CSVReader.open(new File(csv_users))
   val users: List[Map[String, String]] = reader_users.allWithHeaders()
@@ -71,10 +72,12 @@ object PLDIAssignments extends App {
 
     val total_duration = assns.foldLeft(0L){ case (acc,(_,_,_,_,admin_duration)) => acc + admin_duration.toInt}
 
+    val duration_txt = if (with_times) { " (" + total_duration + " total minutes)" } else { "" }
+
     println(user_db(vol_id)('first) +
             " " + user_db(vol_id)('last) +
             " <" + user_db(vol_id)('email) + ">" +
-            " (" + total_duration + " total minutes)"
+            duration_txt
     )
     assns.foreach { case(event, start, end, duration, admin_duration) =>
       println("\t" + start + " UNTIL " + end + " (" + admin_duration + " minutes)" + "\t" + event)
