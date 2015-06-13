@@ -55,7 +55,7 @@ object PLDIAssignments extends App {
         // compute duration in mins
         val duration = (end_d.getTime - start_d.getTime)/1000/60
 
-        Some((arow("event"),start_conv,end_conv,duration,arow("total_duration")))
+        Some((arow("event"),start_conv,end_conv,duration,arow("total_duration"),start_d,end_d))
       } else {
         None
       }
@@ -69,8 +69,7 @@ object PLDIAssignments extends App {
   }
 
   user_assignments.foreach { case (vol_id, assns) =>
-
-    val total_duration = assns.foldLeft(0L){ case (acc,(_,_,_,_,admin_duration)) => acc + admin_duration.toInt}
+    val total_duration = assns.foldLeft(0L){ case (acc,(_,_,_,_,admin_duration,_,_)) => acc + admin_duration.toInt}
 
     val duration_txt = if (with_times) { " (" + total_duration + " total minutes)" } else { "" }
 
@@ -79,11 +78,25 @@ object PLDIAssignments extends App {
             " <" + user_db(vol_id)('email) + ">" +
             duration_txt
     )
-    assns.foreach { case(event, start, end, duration, admin_duration) =>
+    assns.foreach { case(event, start, end, duration, admin_duration, start_d, end_d) =>
       println("\t" + start + " UNTIL " + end + " (" + admin_duration + " minutes)" + "\t" + event)
     }
 
     println()
+  }
+
+  val hourly_schedule = user_assignments.map { case (volunteer_id, assignments) =>
+    assignments.map { case (event, start, end, duration, admin_duration, start_d, end_d) =>
+
+      // unfortunately, the string representation is still wrong
+      val start_conv = start_d.toString.replace("EDT","PDT")
+      val end_conv = end_d.toString.replace("EDT","PDT")
+      (event, start_conv.toString, end_conv.toString, duration, admin_duration, volunteer_id)
+    }
+  }.flatten.sortBy { case (event, start, end, duration, admin_duration, volunteer_id) => start }
+
+  hourly_schedule.foreach { case (event, start, end, duration, admin_duration, volunteer_id) =>
+    println(List(start, end, event, admin_duration, (user_db(volunteer_id)('first) + " " + user_db(volunteer_id)('last))).mkString(", "))
   }
 
 //  assignments.sortBy{ arow => arow("start") }.foreach { arow =>
