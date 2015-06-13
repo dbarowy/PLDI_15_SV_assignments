@@ -91,11 +91,11 @@ object PLDIAssignments extends App {
       // unfortunately, the string representation is still wrong
       val start_conv = start_d.toString.replace("EDT","PDT")
       val end_conv = end_d.toString.replace("EDT","PDT")
-      (event, start_conv.toString, end_conv.toString, duration, admin_duration, volunteer_id)
+      (event, start_conv, end_conv, duration, admin_duration, volunteer_id, start_d, end_d)
     }
-  }.flatten.sortBy { case (event, start, end, duration, admin_duration, volunteer_id) => start }
+  }.flatten.sortBy { case (event, start, end, duration, admin_duration, volunteer_id, start_d, end_d) => start_d }
 
-  hourly_schedule.foreach { case (event, start, end, duration, admin_duration, volunteer_id) =>
+  hourly_schedule.foreach { case (event, start, end, duration, admin_duration, volunteer_id, start_d, end_d) =>
     println(List(start, end, event, admin_duration, (user_db(volunteer_id)('first) + " " + user_db(volunteer_id)('last))).mkString(", "))
   }
 
